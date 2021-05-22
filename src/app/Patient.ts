@@ -1,0 +1,29 @@
+export interface Patient {
+    Id:number;
+    PatientId:string;
+    Name:string;
+    Contact:number;
+    Address?:string;
+    Age:number;
+    Sex:string;
+    Status:string;
+    Date:Date;
+    IsActive:boolean;
+    Prescriptions:Prescription[];
+}
+export interface Prescription{
+    Id:string;
+    Patient_History:string;
+    Vitals_BP:string;
+    Vitals_Pulse:string;
+    Vitals_RR:string;
+    Vitals_SPO2:string;
+    Vitals_Weight:string;
+    Vitals_Height:string;
+    Vitals_BMI:string;
+    Vitals_Others:string;
+    Investigations:string;
+    Prescription_Text:string;
+    Date:Date;
+    IsActive:boolean;
+}

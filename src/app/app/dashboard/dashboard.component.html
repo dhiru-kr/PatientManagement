@@ -1,0 +1,448 @@
+<p-toast></p-toast>
+<div class="card">
+  <p-toolbar styleClass="p-mb-4">
+    <ng-template pTemplate="left">
+      <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success p-mr-2"
+              (click)="openNew()"></button>
+    </ng-template>
+  </p-toolbar>
+
+  <p-table #dt [value]="Patients" [rows]="10" [paginator]="true" [globalFilterFields]="['Id','PatientId','Name','Date','Status']"
+           [(selection)]="selectedPatients" [rowHover]="true" dataKey="id"
+           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [showCurrentPageReport]="true">
+    <ng-template pTemplate="caption">
+      <div class="p-d-flex p-ai-center p-jc-between">
+        <h5 class="p-m-0">Manage Patients</h5>
+        <span class="p-input-icon-left">
+          <i class="pi pi-search"></i>
+          <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')"
+                 placeholder="Search..." />
+        </span>
+      </div>
+    </ng-template>
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 4rem">
+            
+        </th>
+        <th pSortableColumn="Id">
+          Id <p-sortIcon field="Id"></p-sortIcon>
+        </th>
+        <th pSortableColumn="Name">
+          Name <p-sortIcon field="Name"></p-sortIcon>
+        </th>
+        <th pSortableColumn="Contact">
+          Contact <p-sortIcon field="Contact"></p-sortIcon>
+        </th>
+        <th pSortableColumn="Address">
+          Address <p-sortIcon field="Address"></p-sortIcon>
+        </th>
+        <th pSortableColumn="Age" style="width: 6rem">
+          Age <p-sortIcon field="Age"></p-sortIcon>
+        </th>
+        <th pSortableColumn="Sex" style="width: 8rem">
+          Sex <p-sortIcon field="Sex"></p-sortIcon>
+        </th>
+        <th pSortableColumn="Date" style="width: 12rem">
+          Date <p-sortIcon field="Date"></p-sortIcon>
+        </th>
+        <th pSortableColumn="Status" style="width: 9rem">
+          Status <p-sortIcon field="Status"></p-sortIcon>
+        </th>
+        <th>Prescription</th>
+
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-Patient>
+      <tr >
+        <td>
+          <button pButton icon="pi pi-user-edit" class="p-button-rounded " (click)="openUpdatePatientDialogue(Patient)"></button>
+        </td>  
+        <td>{{Patient.PatientId}}</td>
+        <td>{{Patient.Name}}</td>
+        <td>{{Patient.Contact}}</td>
+        <td>{{Patient.Address}}</td>
+        <td>{{Patient.Age}}</td>
+        <td>{{Patient.Sex}}</td>
+        <td>{{Patient.Date.toDate() | date }}</td>
+        <td>
+          <span [class]="'product-badge status-' + (Patient.Status ? Patient.Status.toLowerCase() : '')">{{Patient.Status}}</span>
+        </td>
+        <td>
+          <button pButton pRipple class="button p-button-success width"
+                  (click)="AddPrescription(Patient)">
+            Add
+          </button>
+
+          <button pButton pRipple class="button p-button-success width"
+                  (click)="ViewPrescription(Patient)">
+            View
+          </button>
+
+          <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="confirm(Patient)"></button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="summary">
+      <div class="p-d-flex p-ai-center p-jc-between">
+        In total there are {{Patients ? Patients.length : 0 }} Patients.
+      </div>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [(visible)]="PatientDialog" [style]="{width: '450px'}" header="New Patient Registration" [modal]="true"
+          styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    <div class="p-field">
+      <label for="Name">Patient Name</label>
+      <input type="text" pInputText id="Name" [(ngModel)]="Patient.Name" required autofocus />
+      <small class="p-error" *ngIf="submitted && !Patient.Name">Name is required.</small>
+    </div>
+    <div class="p-field">
+      <label for="Contact">Patient Contact</label>
+      <input type="text" pInputText id="Contact" [(ngModel)]="Patient.Contact" required autofocus />
+      <small class="p-error" *ngIf="submitted && !Patient.Contact">Contact is required.</small>
+    </div>
+    <div class="p-field">
+      <label for="Address">Patient Address</label>
+      <textarea id="Address" pInputTextarea [(ngModel)]="Patient.Address" required rows="1" cols="20"></textarea>
+    </div>
+    <div class="p-field">
+      <label for="Address">Patient Age</label>
+      <input type="number" pInputText id="Age" [(ngModel)]="Patient.Age" required autofocus />
+      <small class="p-error" *ngIf="submitted && !Patient.Age">Age is required.</small>
+    </div>
+    <div class="p-field">
+      <label class="p-mb-3">Sex</label>
+      <p-dropdown [options]="Sex" [(ngModel)]="Patient.Sex" required autofocus></p-dropdown>
+    </div>
+
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="savePatient()"></button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="PrescriptionDialog" [style]="{width: '650px'}" header="New Prescription" [modal]="true"
+          styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    <div class="p-field">
+      <label for="Name">Patient Id : {{Patient.PatientId}}</label>
+    </div>
+
+    <div class="p-field">
+      <label for="Vitals">Patient Vitals</label>
+      <div class="row">
+        <div class="col-sm-3">
+          <input type="text" placeholder="BP" pInputText id="Vitals_BP" [(ngModel)]="prescription.Vitals_BP"
+                 required autofocus />
+        </div>
+        <div class="col-sm-3">
+          <input type="text" placeholder="Weight" pInputText id="Vitals_Weight"
+                 [(ngModel)]="prescription.Vitals_Weight" required autofocus />
+        </div>
+        <div class="col-sm-3">
+          <input type="text" placeholder="Pulse" pInputText id="Vitals_Pulse"
+                 [(ngModel)]="prescription.Vitals_Pulse" required autofocus />
+        </div>
+        <div class="col-sm-3">
+          <input type="text" placeholder="Height" pInputText id="Vitals_Height"
+                 [(ngModel)]="prescription.Vitals_Height" required autofocus />
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-sm-3">
+          <input type="text" placeholder="RR" pInputText id="Vitals_RR" [(ngModel)]="prescription.Vitals_RR"
+                 required autofocus />
+        </div>
+        <div class="col-sm-3">
+          <input type="text" placeholder="BMI" pInputText id="Vitals_BMI"
+                 [(ngModel)]="prescription.Vitals_BMI" required autofocus />
+        </div>
+        <div class="col-sm-3">
+          <input type="text" placeholder="SPO2" pInputText id="Vitals_SPO2"
+                 [(ngModel)]="prescription.Vitals_SPO2" required autofocus />
+        </div>
+        <div class="col-sm-3">
+          <input type="text" placeholder="Others" pInputText id="Vitals_Others"
+                 [(ngModel)]="prescription.Vitals_Others" required autofocus />
+        </div>
+      </div>
+    </div>
+    <div class="p-field">
+      <label for="Patient_History">Patient History</label>
+      <textarea id="Patient_History" pInputTextarea [(ngModel)]="prescription.Patient_History" required rows="2"
+                cols="20"></textarea>
+    </div>
+    <div class="p-field">
+      <label for="Investigations">Investigations</label>
+      <textarea id="Investigations" pInputTextarea [(ngModel)]="prescription.Investigations" required rows="3"
+                cols="20"></textarea>
+    </div>
+    <div class="p-field">
+      <label for="Prescription_Text">Prescription</label>
+      <textarea id="Prescription_Text" pInputTextarea [(ngModel)]="prescription.Prescription_Text" required
+                rows="10" cols="20"></textarea>
+    </div>
+    <label>Upload Patient Documents (if any) </label>
+    <p-fileUpload name="demo[]" (onSelect)="onUpload($event)" multiple="multiple" accept="image/*"
+                  maxFileSize="1000000">
+      <ng-template pTemplate="content">
+        <ul *ngIf="uploadedFiles.length">
+          <li *ngFor="let file of uploadedFiles">{{file.name}} - {{file.size}} bytes</li>
+        </ul>
+      </ng-template>
+    </p-fileUpload>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text"
+            (click)="hidePrescription()"></button>
+    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text"
+            (click)="savePrescription()"></button>
+  </ng-template>
+</p-dialog>
+<p-dialog [(visible)]="viewPrescription" [style]="{width: '1050px'}" header="View Prescriptions " [modal]="true" styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    <div id="print-section" style="width:1000px;margin: auto;">
+      <p align="center"><img alt="" src="../../../assets/header.JPG" style="height:217px; width:1000px" /></p>
+      <div>
+        <table align="center" border="1" cellpadding="0" cellspacing="0" style="width:1000px;">
+          <thead>
+            <tr>
+              <th scope="col" style="width: 318px; text-align: left;"><span style="font-family:Comic Sans MS,cursive">Patient Id: {{patientPrescription.PatientId}}</span></th>
+              <th colspan="3" rowspan="1" scope="col" style="width: 676px; text-align: center;"><span style="font-family:Comic Sans MS,cursive">Date : {{patientPrescription.Date.toDate() | date}}</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="width: 318px;">
+                <span style="font-family:Comic Sans MS,cursive">
+                  <strong>Name</strong>
+                  :
+                  {{patientPrescription.Name}}
+                </span>
+              </td>
+              <td style="width: 319px;">
+                <span style="font-family:Comic Sans MS,cursive">
+                  <strong>
+                    Contact
+                  </strong>:
+                  {{patientPrescription.Contact}}
+                </span>
+              </td>
+              <td style="width: 227px;"><strong>Age </strong>: {{patientPrescription.Age}}</td>
+              <td style="width: 124px;"><strong>Sex </strong>: {{patientPrescription.Sex}}</td>
+            </tr>
+            <tr>
+              <td colspan="4" style="width:216px">
+                <strong>Address </strong>:&nbsp; {{patientPrescription.Address}}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="wrap">&nbsp;</p>
+      <div *ngFor="let p of patientPrescription.Prescriptions">
+        <div class="bottomargin">
+          <table align="center" border="1" cellpadding="0" cellspacing="0" style="width:1000px;background-color:#e67e22">
+            <thead>
+              <tr>
+                <th colspan="7" scope="col" style="width: 523px; text-align: left;">
+                  <span style="font-family:Comic Sans MS,cursive;">
+                    <span style="font-size:14px;">
+                      Prescription
+                      Date : {{p.Date.toDate() | date}}
+                    </span>
+                  </span>
+                </th>
+              </tr>
+
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bottomargin">
+          <table align="center" border="1" cellpadding="0" cellspacing="0" style="width:1000px;">
+            <tbody>
+              <tr style="background-color: #2f939b">
+                <td colspan="4" style="width: 202px;">
+                  <strong>
+                    <span style="font-family:Comic Sans MS,cursive;">
+                      <span style="font-size:14px;">
+                        Patient
+                        Vitals
+                      </span>
+                    </span>
+                  </strong>
+                </td>
+              </tr>
+              <tr>
+                <td style="width: 202px;">
+                  <span style="font-family:Comic Sans MS,cursive;">
+                    <strong>
+                      BP
+                    </strong>:&nbsp; {{p.Vitals_BP}}
+                  </span>
+                </td>
+                <td style="width: 268px;">
+                  <span style="font-family:Comic Sans MS,cursive;">
+                    <strong>
+                      Height
+                    </strong>: {{p.Vitals_Height}}
+                  </span>
+                </td>
+                <td style="width: 262px;">
+                  <span style="font-family:Comic Sans MS,cursive;">
+                    <strong>
+                      BMI
+                    </strong>: {{p.Vitals_BMI}}
+                  </span>
+                </td>
+                <td style="width: 245px;">
+                  <span style="font-family:Comic Sans MS,cursive;">
+                    <strong>
+                      SPO2
+                    </strong>: {{p.Vitals_SPO2}}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td style="width: 202px;">
+                  <span style="font-family:Comic Sans MS,cursive;">
+                    <strong>
+                      Pulse
+                    </strong>: {{p.Vitals_Pulse}}
+                  </span>
+                </td>
+                <td style="width: 268px;">
+                  <span style="font-family:Comic Sans MS,cursive;">
+                    <strong>
+                      Weight
+                    </strong>: {{p.Vitals_Weight}}
+                  </span>
+                </td>
+                <td style="width: 262px;">
+                  <span style="font-family:Comic Sans MS,cursive;">
+                    <strong>RR </strong>:
+                    {{p.Vitals_RR}}
+                  </span>
+                </td>
+                <td style="width: 245px;">
+                  <span style="font-family:Comic Sans MS,cursive;">
+                    <strong>
+                      Others
+                    </strong>: {{p.Vitals_Others}}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="bottomargin">
+          <table align="center" border="1" cellpadding="0" cellspacing="0" style="width:1000px;background-color:#7f8c8d">
+            <tbody>
+              <tr style="background-color: #2f939b">
+                <td colspan="4" style="width: 202px;">
+                  <strong>
+                    <span style="font-family:Comic Sans MS,cursive;">
+                      <span style="font-size:14px;">
+                        Patient
+                        History
+                      </span>
+                    </span>
+                  </strong>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="wrap">{{p.Patient_History}}</p>
+        </div>
+        <div class="bottomargin">
+          <table align="center" border="1" cellpadding="0" cellspacing="0" style="width:1000px;background-color:#7f8c8d">
+            <tbody>
+              <tr style="background-color: #2f939b">
+                <td colspan="4" style="width: 202px;">
+                  <font face="Comic Sans MS, cursive">
+                    <span style="font-size: 14px;"><b>Investigations</b></span>
+                  </font>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="wrap">{{p.Investigations}}</p>
+        </div>
+        <div class="bottomargin">
+          <table align="center" border="1" cellpadding="0" cellspacing="0" style="width:1000px;background-color:#7f8c8d">
+            <tbody>
+              <tr style="background-color: #2f939b">
+                <td colspan="4" style="width:202px">
+                  <font face="Comic Sans MS, cursive">
+                    <font face="Comic Sans MS, cursive">
+                      <span style="font-size: 14px;"><b>Prescriptions and Suggestions</b></span>
+                    </font>
+                  </font>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="wrap">{{p.Prescription_Text}}</p>
+        </div>
+        <p>&nbsp;</p>
+      </div>
+      <p align="center"><img alt="" src="../../../assets/footer.JPG" style="height:184px; width:1000px" /></p>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text"
+            (click)="hideViewPrescription()"></button>
+    <button pButton pRipple label="Print" icon="pi pi-file-pdf" class="p-button-text" (click)="generatePDF()"></button>
+  </ng-template>
+</p-dialog>
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+
+<!-- ------------------update Functionality---------------------------- -->
+<p-dialog [(visible)]="PatientUpdateDialog" [style]="{width: '450px'}" header="Update Patient Details" [modal]="true"
+          styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    <div class="p-field">
+      <label for="Name">Patient Name</label>
+      <input type="text" pInputText id="Name" [(ngModel)]="Patient.Name" required autofocus />
+      <small class="p-error" *ngIf="submitted && !Patient.Name">Name is required.</small>
+    </div>
+    <div class="p-field">
+      <label for="Contact">Patient Contact</label>
+      <input type="text" pInputText id="Contact" [(ngModel)]="Patient.Contact" required autofocus />
+      <small class="p-error" *ngIf="submitted && !Patient.Contact">Contact is required.</small>
+    </div>
+    <div class="p-field">
+      <label for="Address">Patient Address</label>
+      <textarea id="Address" pInputTextarea [(ngModel)]="Patient.Address" required rows="1" cols="20"></textarea>
+    </div>
+    <div class="p-field">
+      <label for="Address">Patient Age</label>
+      <input type="number" pInputText id="Age" [(ngModel)]="Patient.Age" required autofocus />
+      <small class="p-error" *ngIf="submitted && !Patient.Age">Age is required.</small>
+    </div>
+    <div class="p-field">
+      <label class="p-mb-3">Sex</label>
+      <p-dropdown [options]="Sex" [(ngModel)]="Patient.Sex" required autofocus></p-dropdown>
+    </div>
+    <div class="p-field">
+      <label class="p-mb-3">Status</label>
+      <p-dropdown [options]="Status" [(ngModel)]="Patient.Status" required autofocus></p-dropdown>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideupdateDialog()"></button>
+    <button pButton pRipple label="Save" icon="pi pi-check" class="p-button-text" (click)="updatePatient()"></button>
+  </ng-template>
+</p-dialog>
