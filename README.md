@@ -7,3 +7,4 @@
     - SCSS
     - Firestore
     - Firebase hosted
+    - PrimeNG
